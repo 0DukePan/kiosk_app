@@ -1,13 +1,19 @@
 import 'package:animation_wrappers/animation_wrappers.dart';
 import 'package:flutter/material.dart';
-
-import '../Theme/colors.dart';
+import 'package:hungerz_kiosk/Models/menu_item.dart';
+import 'package:hungerz_kiosk/Theme/colors.dart';
+import 'package:hungerz_kiosk/Components/custom_circular_button.dart';
 
 class ItemInfoPage extends StatefulWidget {
-  final String? img;
-  final String? name;
+  final MenuItem menuItem;
+  final VoidCallback onIncrement;
+  final VoidCallback onDecrement;
 
-  ItemInfoPage(this.img, this.name);
+  ItemInfoPage({
+    required this.menuItem,
+    required this.onIncrement,
+    required this.onDecrement,
+  });
 
   @override
   _ItemInfoPageState createState() => _ItemInfoPageState();
@@ -36,405 +42,138 @@ class _ItemInfoPageState extends State<ItemInfoPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Drawer(
-      child: SingleChildScrollView(
-        child: Container(
-          width: MediaQuery.of(context).size.width,
-          color: Theme.of(context).colorScheme.surface,
+    double totalPrice = widget.menuItem.price * widget.menuItem.count;
+
+    return Scaffold(
+      body: SafeArea(
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.all(16.0),
                 children: [
-                  Stack(
+                  FadedScaleAnimation(
+                    child: ClipRRect(
+                       borderRadius: BorderRadius.circular(10),
+                       child: widget.menuItem.image != null && widget.menuItem.image!.isNotEmpty
+                          ? Image.network(
+                              widget.menuItem.image!, 
+                              fit: BoxFit.cover,
+                              height: 200,
+                              width: double.infinity,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(height: 200, width: double.infinity, color: Colors.grey[300], child: Icon(Icons.broken_image, color: Colors.grey[600], size: 60));
+                              },
+                              loadingBuilder: (context, child, loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return Container(height: 200, width: double.infinity, alignment: Alignment.center, child: CircularProgressIndicator(value: loadingProgress.expectedTotalBytes != null ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes! : null));
+                              },
+                            )
+                          : Container(height: 200, width: double.infinity, color: Colors.grey[300], child: Icon(Icons.image_not_supported, color: Colors.grey[600], size: 60)),
+                    ),
+                    scaleDuration: Duration(milliseconds: 600),
+                    fadeDuration: Duration(milliseconds: 600),
+                  ),
+                  SizedBox(height: 16),
+
+                  Row(
                     children: [
-                      FadedScaleAnimation(
-                        child: Container(
-                          width: MediaQuery.of(context).size.width,
-                          height: MediaQuery.of(context).size.height * 0.3,
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.vertical(
-                                  top: Radius.circular(8)),
-                              image: DecorationImage(
-                                  image: AssetImage(widget.img!),
-                                  fit: BoxFit.cover)),
+                      Expanded(
+                        child: Text(
+                          widget.menuItem.name,
+                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
                         ),
-                        scaleDuration: Duration(milliseconds: 300),
-                        fadeDuration: Duration(milliseconds: 300),
                       ),
-                      Container(
-                        margin: EdgeInsets.only(top: 10),
-                        width: MediaQuery.of(context).size.width,
-                        height: MediaQuery.of(context).size.height * 0.3,
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                              begin: Alignment.bottomCenter,
-                              end: Alignment.topCenter,
-                              colors: [
-                                Theme.of(context).scaffoldBackgroundColor,
-                                transparentColor
-                              ],
-                              stops: [
-                                0.0,
-                                0.5
-                              ]),
-                        ),
+                      Image.asset(
+                        widget.menuItem.isVeg ? 'assets/ic_veg.png' : 'assets/ic_nonveg.png',
+                        height: 20,
                       ),
                     ],
                   ),
-                  Container(
-                    width: MediaQuery.of(context).size.width,
-                    padding: EdgeInsets.only(left: 15, right: 15, top: 8),
-                    decoration: BoxDecoration(
-                      borderRadius:
-                          BorderRadius.vertical(bottom: Radius.circular(8)),
-                      color: Theme.of(context).scaffoldBackgroundColor,
+                  SizedBox(height: 10),
+
+                  if (widget.menuItem.description != null && widget.menuItem.description!.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 10.0),
+                      child: Text(
+                        "Description",
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, color: Colors.grey[700]),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+                    ),
+                  if (widget.menuItem.description != null && widget.menuItem.description!.isNotEmpty)
                         Text(
-                          widget.name!,
-                          style: Theme.of(context).textTheme.titleMedium,
+                      widget.menuItem.description!,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
                         ),
-                        Row(
-                          children: [
-                            Text(
-                              "Fast Food",
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall!
-                                  .copyWith(height: 1.8),
-                            ),
-                            Spacer(),
-                            Text(
-                              '\$12.00',
-                              style: Theme.of(context).textTheme.bodyMedium,
-                            )
-                          ],
-                        ),
-                        SizedBox(
-                          height: 10,
-                        ),
-                        Text("Add Options",
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodySmall!
-                                .copyWith(
-                                    fontWeight: FontWeight.w500,
-                                    letterSpacing: 1.5)),
-                        buildAddOption(context, 'Extra Cheese', '\$5.00'),
-                        buildAddOption(context, 'Extra Honey', '\$3.00'),
-                        buildAddOption(context, 'Extra Mayonnaise', '\$4.00'),
-                        SizedBox(
-                          height: 20,
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                      height: 50,
-                      decoration: BoxDecoration(
-                          borderRadius:
-                              BorderRadius.vertical(bottom: Radius.circular(8)),
-                          color: Theme.of(context).primaryColor),
-                      width: MediaQuery.of(context).size.width,
-                      child: Center(
-                          child: Text(
-                        "Add to Cart",
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      )))
+                  SizedBox(height: 16),
                 ],
               ),
-              Column(
+            ),
+
+            Divider(height: 1, thickness: 0.5),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
-                    margin: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                    padding: EdgeInsets.symmetric(horizontal: 15, vertical: 15),
-                    width: MediaQuery.of(context).size.width,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      color: Theme.of(context).scaffoldBackgroundColor,
-                    ),
-                    child: RichText(
-                        text: TextSpan(children: <TextSpan>[
-                      TextSpan(
-                          text: "Description" + '\n\n',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall!
-                              .copyWith(
-                                  fontWeight: FontWeight.w500,
-                                  letterSpacing: 1.5)),
-                      TextSpan(
-                          text:
-                              'Lorem ipsum dolor sit amet, consecutar adi piscing elit, sed do eiusmod incidudant ut djd labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud.',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyMedium!
-                              .copyWith(height: 1.3)),
-                    ])),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      buildIconButton(Icons.remove, widget.onDecrement),
+                      SizedBox(width: 16),
+                      Text(
+                        widget.menuItem.count.toString(),
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      SizedBox(width: 16),
+                      buildIconButton(Icons.add, widget.onIncrement),
+                    ],
                   ),
-                  Container(
-                    width: MediaQuery.of(context).size.width,
-                    height: MediaQuery.of(context).size.height * 0.27,
-                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                    decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(8),
-                        image: DecorationImage(
-                            image: AssetImage(widget.img!),
-                            fit: BoxFit.cover,
-                            colorFilter: ColorFilter.mode(
-                                Colors.black.withOpacity(0.4),
-                                BlendMode.darken))),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Spacer(),
-                        Center(
-                          child: Image.asset(
-                            'assets/yt.png',
-                            scale: 4,
-                          ),
-                        ),
-                        Spacer(),
-                        RichText(
-                            text: TextSpan(children: <TextSpan>[
-                          TextSpan(
-                              text: "Know how we cook it?" + '\n',
-                              style: Theme.of(context).textTheme.bodyLarge),
-                          TextSpan(
-                              text: '3 ' + "min video",
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall!
-                                  .copyWith(color: strikeThroughColor)),
-                        ]))
+                  Text(
+                    "Total: ${totalPrice.toStringAsFixed(2)} DZD",
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                  ),
                       ],
                     ),
                   ),
-                  Container(
-                    width: MediaQuery.of(context).size.width,
-                    padding: EdgeInsets.symmetric(horizontal: 0, vertical: 5),
-                    child: Row(
-                      // mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        buildCustomContainer(
-                            context,
-                            'assets/ItemCategory/cat_fastfood.png',
-                            "Servings",
-                            '2 ' + "People"),
-                        Spacer(),
-                        buildCustomContainer(
-                            context,
-                            'assets/icon_cooktime.png',
-                            "Cook Time",
-                            '12 ' + "Mins"),
-                        Spacer(),
-                        buildCustomContainer(context, 'assets/icon_orders.png',
-                            "Energy",
-                             '227 ' + "Cal"),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    padding: EdgeInsets.symmetric(horizontal: 15, vertical: 5),
-                    width: MediaQuery.of(context).size.width,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      color: Theme.of(context).scaffoldBackgroundColor,
-                    ),
-                    child: RichText(
-                        text: TextSpan(children: <TextSpan>[
-                      TextSpan(
-                          text: "Ingredients" + '\n\n',
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall!
-                              .copyWith(
-                                  fontWeight: FontWeight.w500,
-                                  letterSpacing: 1.5)),
-                      TextSpan(
-                          text: "Common Food Ingredients",
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodyMedium!
-                              .copyWith(
-                                  letterSpacing: 0.4,
-                                  height: 1.6,
-                                  wordSpacing: 15,
-                                  fontWeight: FontWeight.w500)),
-                    ])),
-                  ),
-                  // SizedBox(
-                  //   height: 18,
-                  // ),
-                  // Padding(
-                  //   padding: const EdgeInsets.symmetric(
-                  //       vertical: 8.0, horizontal: 18),
-                  //   child: Text(
-                  //     "Related items you may like",
-                  //     style: Theme.of(context).textTheme.bodySmall.copyWith(
-                  //         fontWeight: FontWeight.w500, letterSpacing: 1.5),
-                  //   ),
-                  // ),
-                  // SizedBox(
-                  //   height: 230,
-                  //   child: ListView.builder(
-                  //       padding:
-                  //       EdgeInsets.only(left: 10, right: 10, bottom: 20),
-                  //       scrollDirection: Axis.horizontal,
-                  //       shrinkWrap: true,
-                  //       itemCount: 6,
-                  //       itemBuilder: (context, index) {
-                  //         return Container(
-                  //           margin: EdgeInsets.only(right: 10),
-                  //           width: 170,
-                  //           decoration: BoxDecoration(
-                  //               borderRadius: BorderRadius.circular(10),
-                  //               color:
-                  //               Theme.of(context).scaffoldBackgroundColor),
-                  //           child: Column(
-                  //             crossAxisAlignment: CrossAxisAlignment.start,
-                  //             children: [
-                  //               GestureDetector(
-                  //                 onTap: () {
-                  //                   Navigator.push(context, MaterialPageRoute(builder: (context)=>ItemInfoPage(foodItems[index].image, foodItems[index].name)));
-                  //                 },
-                  //                 child: Container(
-                  //                   height: 150,
-                  //                   width: 170,
-                  //                   decoration: BoxDecoration(
-                  //                       borderRadius: BorderRadius.vertical(
-                  //                           top: Radius.circular(10)),
-                  //                       image: DecorationImage(
-                  //                           image: AssetImage(
-                  //                               foodItems[index].image),
-                  //                           fit: BoxFit.fill)),
-                  //                 ),
-                  //               ),
-                  //               Spacer(),
-                  //               Padding(
-                  //                 padding: const EdgeInsets.symmetric(
-                  //                     horizontal: 8.0),
-                  //                 child: Text(
-                  //                   foodItems[index].name,
-                  //                   style: Theme.of(context)
-                  //                       .textTheme
-                  //                       .titleMedium
-                  //                       .copyWith(fontSize: 14),
-                  //                   overflow: TextOverflow.ellipsis,
-                  //                   softWrap: true,
-                  //                 ),
-                  //               ),
-                  //               Spacer(),
-                  //               Padding(
-                  //                 padding: const EdgeInsets.symmetric(
-                  //                     horizontal: 8.0),
-                  //                 child: Row(
-                  //                   children: [
-                  //                     Image.asset(
-                  //                       foodItems[index].isVeg
-                  //                           ? 'assets/ic_veg.png'
-                  //                           : 'assets/ic_nonveg.png',
-                  //                       scale: 2.5,
-                  //                     ),
-                  //                     SizedBox(
-                  //                       width: 8,
-                  //                     ),
-                  //                     Text('\$ ' + foodItems[index].price),
-                  //                   ],
-                  //                 ),
-                  //               ),
-                  //               Spacer(),
-                  //             ],
-                  //           ),
-                  //         );
-                  //       }),
-                  // ),
-                ],
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: CustomButton(
+                onTap: () {
+                  Navigator.pop(context);
+                },
+                title: Text(
+                  "Close",
+                   style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18),
+                ),
+                bgColor: buttonColor,
+                borderRadius: 8,
               ),
-            ],
-          ),
+            )
+          ],
         ),
       ),
     );
   }
 
-  Container buildAddOption(
-    BuildContext context,
-    String title,
-    String price,
-  ) {
-    bool? val = title == 'Extra Cheese' ? true : false;
-    return Container(
-      height: 30,
-      child: Row(
-        children: [
-          Transform.scale(
-              scale: 0.7,
-              child: Checkbox(
-                activeColor: Theme.of(context).primaryColor,
-                checkColor: Theme.of(context).scaffoldBackgroundColor,
-                value: val,
-                onChanged: (bool? value) {
-                  setState(() {
-                    val = value;
-                  });
-                },
-              )),
-          Text(
-            title,
-            style:
-                Theme.of(context).textTheme.titleMedium!.copyWith(fontSize: 14),
-          ),
-          Spacer(),
-          Text(price)
-        ],
-      ),
-    );
-  }
-
-  Container buildCustomContainer(
-      BuildContext context, String icon, String title, String subtitle) {
-    return Container(
-      margin: EdgeInsets.symmetric(vertical: 10),
-      height: MediaQuery.of(context).size.height * 0.18,
-      width: MediaQuery.of(context).size.width * 0.25,
+  Widget buildIconButton(IconData icon, VoidCallback onPressed) {
+    return InkWell(
+      onTap: onPressed,
+      child: Container(
+        padding: EdgeInsets.all(6),
       decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
-        borderRadius: BorderRadius.circular(8),
+          color: Colors.grey[200],
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.grey.shade300)
       ),
-      child: Column(
-        children: [
-          Spacer(
-            flex: 2,
-          ),
-          Image.asset(
+        child: Icon(
             icon,
-            scale: 3,
+          color: Theme.of(context).primaryColor,
+          size: 20,
           ),
-          Spacer(),
-          Text(title,
-              style: Theme.of(context)
-                  .textTheme
-                  .bodySmall!
-                  .copyWith(fontWeight: FontWeight.w500, letterSpacing: 1.5)),
-          Spacer(),
-          Text(
-            subtitle,
-            style: Theme.of(context)
-                .textTheme
-                .bodyMedium!
-                .copyWith(fontWeight: FontWeight.w500),
-          ),
-          Spacer(
-            flex: 2,
-          ),
-        ],
       ),
     );
   }

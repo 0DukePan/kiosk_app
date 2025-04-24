@@ -36,6 +36,7 @@ dependencies:
   flutter_phoenix: ^1.0.0
   intl:
   shared_preferences: ^2.0.13
+  http: ^1.1.0
   # buy_this_app:
   #   git:
   #     url: git@gitlab.com:verbosetech-flutter/buy-this-app-package.git
